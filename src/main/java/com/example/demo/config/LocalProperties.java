@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.config;
 
 import java.util.List;
 import java.util.Map;
@@ -9,9 +9,12 @@ import org.springframework.context.annotation.Configuration;
 import lombok.Data;
 
 @Configuration
-@ConfigurationProperties(prefix = "test")
+@ConfigurationProperties(prefix = "configuration")
 @Data
 public class LocalProperties {
-
-    private List<DataProperty> list;
+    private String namespace;
+    private String lables;
+    private List<DataProperty> apigwProperties;
+    private String apigwNamespace;
+    private String apigwLables;
 }

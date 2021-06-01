@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.controller;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,11 +29,11 @@ import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.Config;
 
 @RestController
-public class ControllerInside {
+public class Controller {
     
-    private static final String PATH = "kubernetes/int/";
+    private static final String PATH = "kubernetes/";
     
-    private ControllerInside() throws IOException {
+    private Controller() throws IOException {
     }
     
     
