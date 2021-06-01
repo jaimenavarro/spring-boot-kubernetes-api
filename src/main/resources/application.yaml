@@ -34,3 +34,6 @@ configuration:
     - route: sdp-vouchers
       throttlingKey: vouchersKey
       throttlingLimit: 15
+    - route: sdp-activity-logger
+      throttlingKey: activityLoggerKey
+      throttlingLimit: 5
