@@ -14,7 +14,7 @@ import lombok.Data;
 public class LocalProperties {
     private String namespace;
     private String lables;
-    private List<DataProperty> apigwProperties;
     private String apigwNamespace;
     private String apigwLables;
+    private List<Map<String,DataProperty>> apigwProperties;
 }

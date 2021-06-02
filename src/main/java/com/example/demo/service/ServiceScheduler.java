@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -34,11 +36,10 @@ public class ServiceScheduler {
 
     @Scheduled(fixedDelayString = "PT10S")
     public void scheduledExecution() {
-
         //-------------------------------------------------------------------------------------
         // deployment.getStatus().getAvailableReplicas() más conservador ya que es el numero real de replicas arrancadas
         // deploy.getSpec().getReplicas() más estatico el numero de pods puede variar debido a reninicios, pero a la larga es el valor esperado.
-        
+
         try {
             // ------------------------------------
             // ApiGW section
@@ -52,7 +53,7 @@ public class ServiceScheduler {
                 log.info("#######################################################################################");
                 V1Deployment deployment = deployListApiGw.getItems().get(0);
                 log.info("ApiGw Replicas Available: " + deployment.getStatus().getAvailableReplicas());
-                // log.info("STATUS: " + deployment.getStatus());
+                log.info("ApiGw Replicas: " + deployment.getSpec().getReplicas());
             }
 
             // ------------------------------------
@@ -60,57 +61,81 @@ public class ServiceScheduler {
             //
             V2beta1HorizontalPodAutoscalerList hpaList = getHPAList(localProperties.getNamespace(), localProperties.getLables());
             V1DeploymentList deployList = getDeployList(localProperties.getNamespace(), localProperties.getLables());
+            log.info("HPA list size: " + hpaList.getItems().size());
+            log.info("Deploy list size: " + deployList.getItems().size());
 
-            for (DataProperty dataProperty : localProperties.getApigwProperties()) {
 
+            for (Map<String,DataProperty> map : localProperties.getApigwProperties()) {
                 Boolean foundHPABoolean = false;
                 Boolean foundDeployBoolean = false;
 
-                for (V2beta1HorizontalPodAutoscaler objectMeta : hpaList.getItems()) {
-                    if (dataProperty.getRoute().equals(objectMeta.getSpec().getScaleTargetRef().getName())) {
-                        log.info("--------------------------------------------------------------");
-                        log.info("HPA MaxReplicas:" + objectMeta.getSpec().getMaxReplicas());
-                        log.info("HPA MinReplicas:" + objectMeta.getSpec().getMinReplicas());
-                        log.info("HPA CurrentReplicas:" + objectMeta.getStatus().getCurrentReplicas());
-                        log.info("HPA nameDeploy:" + objectMeta.getSpec().getScaleTargetRef().getName());
-                        foundHPABoolean = true;
-                        if (objectMeta.getStatus().getCurrentReplicas() < objectMeta.getSpec().getMaxReplicas()) {
-                            Integer thortllingUpdated = (objectMeta.getStatus().getCurrentReplicas() + 1) * dataProperty.getThrottlingLimit();
-                            Integer thortllingMax = (objectMeta.getSpec().getMaxReplicas()) * dataProperty.getThrottlingLimit();
-                            log.info("ThortllingKey: {} ThortllingDefault: {}  ThortllingNext: {} ThortllingMax: {}",
-                                    dataProperty.getThrottlingKey(), dataProperty.getThrottlingLimit(),
-                                    thortllingUpdated, thortllingMax);
-                        } else {
-                            Integer thortllingMax = (objectMeta.getSpec().getMaxReplicas()) * dataProperty.getThrottlingLimit();
-                            log.info("ThortllingKey: {} ThortllingDefault: {}  ThortllingNext: {} ThortllingMax: {}",
-                                    dataProperty.getThrottlingKey(), dataProperty.getThrottlingLimit(), thortllingMax,
-                                    thortllingMax);
-                        }
-                    }
-                }
+                for (Entry<String, DataProperty> key : map.entrySet()) {
+                    DataProperty objectString = key.getValue();
+                    log.info("key:" + key.getKey());
+                    log.info("object:" + objectString);
 
-                if (Boolean.FALSE.equals(foundHPABoolean)) {
-                    for (V1Deployment deploy : deployList.getItems()) {
-                        if (dataProperty.getRoute().equals(deploy.getMetadata().getName())) {
-                            foundDeployBoolean = true;
+                    for (V2beta1HorizontalPodAutoscaler objectMeta : hpaList.getItems()) {
+                        if (objectString.getName().equals(objectMeta.getSpec().getScaleTargetRef().getName())) {
                             log.info("--------------------------------------------------------------");
-                            log.info("Deployment Name:" + deploy.getMetadata().getName());
-                            log.info("Deployment Replicas:" + deploy.getSpec().getReplicas());
-                            Integer thortllingMax = (deploy.getSpec().getReplicas()) * dataProperty.getThrottlingLimit();
-                            log.info("ThortllingKey: {} ThortllingDefault: {}  ThortllingMax: {}",
-                                    dataProperty.getThrottlingKey(), dataProperty.getThrottlingLimit(), thortllingMax);
+                            log.info("HPA MaxReplicas:" + objectMeta.getSpec().getMaxReplicas());
+                            log.info("HPA MinReplicas:" + objectMeta.getSpec().getMinReplicas());
+                            log.info("HPA CurrentReplicas:" + objectMeta.getStatus().getCurrentReplicas());
+                            log.info("HPA nameDeploy:" + objectMeta.getSpec().getScaleTargetRef().getName());
+                            foundHPABoolean = true;
+                            if (objectMeta.getStatus().getCurrentReplicas() < objectMeta.getSpec().getMaxReplicas()) {
+                                Integer thortllingUpdated = (objectMeta.getStatus().getCurrentReplicas() + 1) * objectString.getLimit();
+                                Integer thortllingMax = (objectMeta.getSpec().getMaxReplicas()) * objectString.getLimit();
+                                log.info("ThortllingKey: {} ThortllingDefault: {}  ThortllingNext: {} ThortllingMax: {}",
+                                        key.getKey(),
+                                        objectString.getLimit(),
+                                        thortllingUpdated,
+                                        thortllingMax);
+                            } else {
+                                Integer thortllingMax = (objectMeta.getSpec().getMaxReplicas()) * objectString.getLimit();
+                                log.info("ThortllingKey: {} ThortllingDefault: {}  ThortllingNext: {} ThortllingMax: {}",
+                                        key.getKey(),
+                                        objectString.getLimit(),
+                                        thortllingMax,
+                                        thortllingMax);
+                            }
                         }
                     }
-                }
-                
-                if (Boolean.FALSE.equals(foundHPABoolean) && Boolean.FALSE.equals(foundDeployBoolean) ) {
-                    log.error("RouteKey without HPA or Deployment: {}, {} ", dataProperty.getThrottlingKey(), dataProperty.getThrottlingLimit());
+
+                    if (Boolean.FALSE.equals(foundHPABoolean)) {
+                        for (V1Deployment deploy : deployList.getItems()) {
+                            if (objectString.getName().equals(deploy.getMetadata().getName())) {
+                                foundDeployBoolean = true;
+                                log.info("--------------------------------------------------------------");
+                                log.info("Deployment Name:" + deploy.getMetadata().getName());
+                                log.info("Deployment Replicas:" + deploy.getSpec().getReplicas());
+                                log.info("Deployment Replicas Available:" + deploy.getStatus().getAvailableReplicas());
+                                Integer thortllingMax = (deploy.getSpec().getReplicas()) * objectString.getLimit();
+                                log.info("ThortllingKey: {} ThortllingDefault: {}  ThortllingMax: {}",
+                                        key.getKey(),
+                                        objectString.getLimit(),
+                                        thortllingMax);
+                            }
+                        }
+                    }
+
+                    if (Boolean.FALSE.equals(foundHPABoolean) && Boolean.FALSE.equals(foundDeployBoolean) ) {
+                        log.info("--------------------------------------------------------------");
+                        log.error("RouteKey without HPA or Deployment: {}", key.toString());
+                    }
                 }
             }
 
-        } catch (Exception e) {
-            // TODO keep lastest values
+        } catch (ApiException e) {
+            // TODO: handle exception
             log.error(e.getMessage());
+        } catch (IOException e) {
+            // TODO: handle exception
+            log.error(e.getMessage());
+        } catch (Exception e) {
+            // TODO: handle exception
+            log.error(e.getMessage());
+        } finally {
+
         }
 
     }
@@ -127,16 +152,14 @@ public class ServiceScheduler {
         ApiClient client = Config.defaultClient();
         Configuration.setDefaultApiClient(client);
         AutoscalingV2beta1Api api = new AutoscalingV2beta1Api();
-        return api.listNamespacedHorizontalPodAutoscaler(namespace, null, null, null, null, labelSelector, null, null,
-                null, null, null);
+        return api.listNamespacedHorizontalPodAutoscaler(namespace, null, null, null, null, labelSelector, null, null, null, null, null);
     }
 
     public V1DeploymentList getDeployList(String namespace, String labelSelector) throws ApiException, IOException {
         ApiClient client = Config.defaultClient();
         Configuration.setDefaultApiClient(client);
         AppsV1Api api = new AppsV1Api();
-        return api.listNamespacedDeployment(namespace, null, null, null, null, labelSelector, null, null, null, null,
-                null);
+        return api.listNamespacedDeployment(namespace, null, null, null, null, labelSelector, null, null, null, null, null);
     }
 
 }

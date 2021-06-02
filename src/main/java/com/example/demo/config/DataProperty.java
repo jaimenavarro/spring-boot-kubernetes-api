@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class DataProperty {
-    private String route;
-    private String throttlingKey;
-    private Integer throttlingLimit;
+    private String name;
+    private Integer limit;
+    private Boolean dinamicLimit;
 }
