@@ -3,7 +3,6 @@ package com.example.demo.service;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
@@ -29,9 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 
 
 @EnableScheduling
-@Service
 @Slf4j
 @RequiredArgsConstructor
+@Service
 public class ServiceScheduler {
 
     private final LocalProperties localProperties;
@@ -55,7 +54,7 @@ public class ServiceScheduler {
 
     }
 
-    @Scheduled(initialDelayString = "PT5S", fixedDelayString = "PT10S")
+    @Scheduled(initialDelayString = "${scheduler.initialDelayString}", fixedDelayString = "${scheduler.fixedDelayString}")
     public void scheduledExecution() {
         //-------------------------------------------------------------------------------------
         // TODO: Review
