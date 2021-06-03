@@ -5,6 +5,8 @@ import lombok.Data;
 @Data
 public class DataProperty {
     private String name;
-    private Integer limit;
+    private Integer limitPerPod;
     private Boolean dinamicLimit;
+    private Integer totalLimit;
+    private Integer totalLimitPerApiGw;
 }

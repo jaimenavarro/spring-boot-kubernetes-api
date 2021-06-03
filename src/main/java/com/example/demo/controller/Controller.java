@@ -1,41 +1,38 @@
 package com.example.demo.controller;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.config.LocalProperties;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
-import io.kubernetes.client.openapi.apis.AutoscalingApi;
-import io.kubernetes.client.openapi.apis.AutoscalingV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1HorizontalPodAutoscaler;
-import io.kubernetes.client.openapi.models.V1HorizontalPodAutoscalerList;
-import io.kubernetes.client.openapi.models.V1HorizontalPodAutoscalerStatus;
-import io.kubernetes.client.openapi.models.V1ListMeta;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.Config;
+import lombok.Data;
 
 @RestController
+@Data
 public class Controller {
     
     private static final String PATH = "kubernetes/";
+    private final LocalProperties localProperties;
     
-    private Controller() throws IOException {
+    
+    @GetMapping(path = PATH + "test" )
+    public String test() {
+        return localProperties.toString();
     }
-    
     
     @GetMapping(path = PATH + "pods/{namespace}" )
     public List<V1ObjectMeta> deploymentGet( @PathVariable String namespace ) throws ApiException {
@@ -48,6 +45,7 @@ public class Controller {
         for (V1Pod item : list.getItems()) {
             listPods.add(item.getMetadata());
         }
+        
         
         return listPods;
     }

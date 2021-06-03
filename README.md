@@ -1,6 +1,6 @@
 # Kubernetes API
 
-* [Kubernetes Client libraries] (https://kubernetes.io/docs/reference/using-api/client-libraries/)
+* [Kubernetes Client libraries](https://kubernetes.io/docs/reference/using-api/client-libraries/)
 * [Java library](https://github.com/kubernetes-client/java)
 
 # Configuration for Deployments

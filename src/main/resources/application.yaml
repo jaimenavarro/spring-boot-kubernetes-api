@@ -6,24 +6,24 @@ management.endpoint.health.probes.enabled: true
 management.endpoint.health.group.readiness.include: readinessState,customCheck
 
 configuration:
-  namespace: "ci-izzi-dev-sdp"
+  namespace: "sdp"
   lables: ""
-  apigwNamespace: "ci-izzi-dev-sdp"
+  apigwNamespace: "api-gateway"
   apigwLables: "application=api-gateway"
   apigwProperties:
     - userLoginKey:
-        limit: 10
+        limitPerPod: 10
         name: sdp-user-login
-        dinamicLimit: false
+        dinamicLimit: true
     - userGetKey:
-        limit: 20 
+        limitPerPod: 17 
         name: sdp-user-login
-        dinamicLimit: false
+        dinamicLimit: true
     - vouchersKey:
-        limit: 20 
+        limitPerPod: 20 
         name: sdp-vouchers
-        dinamicLimit: false
+        dinamicLimit: true
     - activityLoggerKey:
-        limit: 20 
+        limitPerPod: 20 
         name: sdp-activity-logger
-        dinamicLimit: false
+        dinamicLimit: true
